@@ -26,9 +26,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { background-color: #090d16; color: #f3f4f6; }
+        
+        /* Dark Mode Badge Styles */
         .heat-red { background-color: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
         .heat-yellow { background-color: rgba(245, 158, 11, 0.15); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.3); }
         .heat-green { background-color: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+        
         .glass-card { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .btn-period { transition: all 0.2s ease; }
         .btn-period.active { background-color: #6366f1; color: #ffffff; border-color: #6366f1; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
@@ -50,6 +53,32 @@
             z-index: 25;
             background-color: #111827;
         }
+
+        /* PDF Clean Printable Layout Overrides */
+        .pdf-export-mode {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            padding: 20px !important;
+        }
+        .pdf-export-mode table {
+            border: 1px solid #cbd5e1 !important;
+        }
+        .pdf-export-mode th {
+            background-color: #f1f5f9 !important;
+            color: #1e293b !important;
+            border-bottom: 2px solid #cbd5e1 !important;
+            position: static !important;
+        }
+        .pdf-export-mode td {
+            color: #0f172a !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            position: static !important;
+            background-color: #ffffff !important;
+        }
+        .pdf-export-mode .heat-red { background-color: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; }
+        .pdf-export-mode .heat-yellow { background-color: #fef9c3 !important; color: #854d0e !important; border: 1px solid #fde68a !important; }
+        .pdf-export-mode .heat-green { background-color: #dcfce7 !important; color: #166534 !important; border: 1px solid #86efac !important; }
+        .pdf-export-mode tr { page-break-inside: avoid !important; }
     </style>
 </head>
 <body class="min-h-screen font-sans antialiased selection:bg-indigo-500 selection:text-white">
@@ -127,7 +156,7 @@
                     
                     <button id="exportPdfBtn" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 font-medium py-2 px-3.5 rounded-xl text-xs transition flex items-center gap-1.5 whitespace-nowrap">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        PDF
+                        Download PDF
                     </button>
 
                     <button id="exportBtn" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-medium py-2 px-3.5 rounded-xl text-xs transition flex items-center gap-1.5 whitespace-nowrap">
@@ -189,10 +218,12 @@
 
         <!-- Matrix Table Area -->
         <section id="pdfContainer" class="glass-card rounded-2xl border border-gray-800 hidden p-2">
+            
+            <!-- Clean Header for PDF / Screen -->
             <div class="p-4 border-b border-gray-800/80 bg-gray-900/40 flex flex-wrap items-center justify-between gap-4 text-xs">
                 <div>
-                    <h2 class="font-semibold text-gray-300">DTT Performance Summary</h2>
-                    <p class="text-[10px] text-gray-500">Calculated formula: (duration / 60) + 1 min</p>
+                    <h2 class="font-semibold text-gray-300 text-base" id="reportHeaderTitle">DTT Performance Summary</h2>
+                    <p class="text-[11px] text-gray-500" id="reportSubtitle">Formula: (Duration in sec / 60) + 1 min buffer per call</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <span class="px-2 py-0.5 rounded text-[10px] heat-red">&lt; 50m</span>
@@ -203,7 +234,7 @@
             </div>
 
             <!-- Scrollable Table Wrapper -->
-            <div class="overflow-auto max-h-[600px] relative">
+            <div id="tableScrollWrapper" class="overflow-auto max-h-[600px] relative">
                 <table id="dttTable" class="w-full text-xs text-left border-collapse">
                     <thead id="tableHead" class="bg-gray-900/90 text-gray-400 uppercase tracking-wider text-[11px] font-semibold border-b border-gray-800 sticky-header">
                         <!-- Dynamic Header -->
@@ -439,9 +470,8 @@
                 const diff = start.getDate() - day + (day === 0 ? -6 : 1);
                 start.setDate(diff);
             } else if (mode === 'monthly') {
-                // Generate ALL days for the current full month
                 start.setDate(1);
-                end = new Date(start.getFullYear(), start.getMonth() + 1, 0); // Last day of month
+                end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
             } else if (mode === 'qtd') {
                 const year = maxDateObj.getFullYear();
                 const selectedQ = parseInt(document.getElementById('quarterSelect').value);
@@ -547,7 +577,10 @@
             const startDate = new Date(startDateStr + 'T00:00:00');
             const endDate = new Date(endDateStr + 'T00:00:00');
 
-            // Collect all dates within range
+            // Update Report Subtitle
+            document.getElementById('reportHeaderTitle').textContent = `DTT Performance Summary (${currentMode.toUpperCase()})`;
+            document.getElementById('reportSubtitle').textContent = `Range: ${startDateStr} to ${endDateStr} • Formula: (Duration/60) + 1 min`;
+
             let activeDates = [];
             let curr = new Date(startDate);
             while (curr <= endDate) {
@@ -577,10 +610,9 @@
             const tbody = document.getElementById('tableBody');
             const tfoot = document.getElementById('tableFoot');
 
-            // --- QUARTER VIEW: MONTHLY SUMMARY AGGREGATION ---
+            // --- QUARTER VIEW ---
             if (currentMode === 'qtd') {
-                // Determine months in current Quarter range
-                const monthsInQ = []; // e.g. [{ name: 'July', key: '2026-07' }, ...]
+                const monthsInQ = [];
                 let mCurr = new Date(startDate);
                 while (mCurr <= endDate) {
                     const key = mCurr.toISOString().slice(0, 7);
@@ -591,7 +623,6 @@
                     mCurr.setDate(mCurr.getDate() + 1);
                 }
 
-                // Quarter Header
                 let headerHTML = `<tr><th class="py-3 px-4 text-left border-b border-gray-800 text-gray-300 sticky-col">Rep Name</th>`;
                 monthsInQ.forEach(m => {
                     headerHTML += `<th class="py-3 px-6 text-center border-b border-gray-800">${m.name} Total</th>`;
@@ -599,7 +630,6 @@
                 headerHTML += `<th class="py-3 px-4 text-center border-b border-gray-800 bg-gray-900/90 text-gray-200">Quarter Total</th></tr>`;
                 thead.innerHTML = headerHTML;
 
-                // Quarter Body
                 let bodyHTML = '';
                 const monthTotals = {};
                 monthsInQ.forEach(m => monthTotals[m.key] = 0);
@@ -631,7 +661,6 @@
 
                 tbody.innerHTML = bodyHTML || `<tr><td colspan="${monthsInQ.length + 2}" class="py-8 text-center text-gray-500 font-sans">No matching rep records for this quarter.</td></tr>`;
 
-                // Quarter Footer
                 let footHTML = `<tr><td class="py-3 px-4 font-sans uppercase tracking-wider text-[11px] text-gray-400 sticky-col">Quarter Total</td>`;
                 monthsInQ.forEach(m => {
                     footHTML += `<td class="py-3 px-6 text-center text-indigo-300 font-bold">${monthTotals[m.key].toFixed(1)}</td>`;
@@ -640,7 +669,7 @@
                 tfoot.innerHTML = footHTML;
 
             } else {
-                // --- DAILY MATRIX VIEW (WEEKLY, MONTHLY, CUSTOM DATE RANGE) ---
+                // --- DAILY MATRIX VIEW ---
                 let headerHTML = `<tr><th class="py-3 px-4 text-left border-b border-gray-800 text-gray-300 sticky-col">Rep Name</th>`;
                 activeDates.forEach(d => {
                     const formattedDate = new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
@@ -697,17 +726,29 @@
             XLSX.writeFile(wb, "DTT_Performance_Summary.xlsx");
         });
 
-        // PDF Export
+        // Professional Clean PDF Export Handler
         document.getElementById('exportPdfBtn').addEventListener('click', () => {
-            const element = document.getElementById('pdfContainer');
+            const pdfTarget = document.getElementById('pdfContainer');
+            const tableWrapper = document.getElementById('tableScrollWrapper');
+
+            // 1. Temporarily expand container height and switch to light print theme
+            tableWrapper.classList.remove('max-h-[600px]');
+            pdfTarget.classList.add('pdf-export-mode');
+
             const opt = {
                 margin:       [0.3, 0.3, 0.3, 0.3],
                 filename:     `DTT_Report_${currentMode.toUpperCase()}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, backgroundColor: '#090d16' },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+                html2canvas:  { scale: 2, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
             };
-            html2pdf().set(opt).from(element).save();
+
+            html2pdf().set(opt).from(pdfTarget).save().then(() => {
+                // 2. Revert back to screen dark mode layout
+                tableWrapper.classList.add('max-h-[600px]');
+                pdfTarget.classList.remove('pdf-export-mode');
+            });
         });
     </script>
 </body>
