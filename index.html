@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DTT Analytics</title>
+    
+    <!-- Dynamic SVG Favicon -->
+    <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='fG' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%231e40af'/><stop offset='100%' stop-color='%230284c7'/></linearGradient><linearGradient id='fB' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23a855f7'/><stop offset='50%' stop-color='%233b82f6'/><stop offset='100%' stop-color='%2306b6d4'/></linearGradient></defs><circle cx='50' cy='50' r='48' fill='%23090d16' stroke='%231d4ed8' stroke-width='4'/><circle cx='50' cy='50' r='40' fill='url(%23fG)' opacity='0.4'/><rect x='22' y='52' width='6' height='16' rx='2' fill='%2338bdf8'/><rect x='31' y='44' width='6' height='24' rx='2' fill='%2360a5fa'/><rect x='40' y='38' width='6' height='30' rx='2' fill='%23c084fc'/><path d='M 58 14 L 38 52 L 52 50 L 32 86 L 82 40 L 58 42 Z' fill='url(%23fB)'/></svg>">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -27,7 +31,6 @@
     <style>
         body { background-color: #090d16; color: #f3f4f6; }
         
-        /* Dark Mode Badge Styles */
         .heat-red { background-color: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
         .heat-yellow { background-color: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.4); }
         .heat-green { background-color: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
@@ -36,7 +39,6 @@
         .btn-period { transition: all 0.2s ease; }
         .btn-period.active { background-color: #6366f1; color: #ffffff; border-color: #6366f1; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
         
-        /* Freeze Headers & Left Column Styling */
         .sticky-col {
             position: sticky;
             left: 0;
@@ -54,7 +56,6 @@
             background-color: #111827;
         }
 
-        /* DARK MODE PDF PRINT ENGINE OVERRIDES */
         @media print {
             @page {
                 size: letter landscape;
@@ -128,14 +129,45 @@
 <body class="min-h-screen font-sans antialiased selection:bg-indigo-500 selection:text-white">
 
     <!-- Navbar -->
-    <header class="border-b border-gray-800/80 bg-gray-950/50 backdrop-blur-md sticky top-0 z-50 py-4 px-6">
+    <header class="border-b border-gray-800/80 bg-gray-950/50 backdrop-blur-md sticky top-0 z-50 py-3.5 px-6">
         <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">
-                    ⚡
+                
+                <!-- Speedometer & Lightning SVG Logo -->
+                <div class="h-10 w-10 relative flex items-center justify-center">
+                    <svg class="w-10 h-10 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="dialBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#1d4ed8"/>
+                                <stop offset="100%" stop-color="#0284c7"/>
+                            </linearGradient>
+                            <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#c084fc"/>
+                                <stop offset="50%" stop-color="#3b82f6"/>
+                                <stop offset="100%" stop-color="#06b6d4"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Outer Rim -->
+                        <circle cx="50" cy="50" r="46" fill="#090d16" stroke="#1d4ed8" stroke-width="4"/>
+                        <circle cx="50" cy="50" r="38" fill="url(#dialBg)" fill-opacity="0.25"/>
+                        
+                        <!-- Dial Ticks -->
+                        <circle cx="50" cy="50" r="38" stroke="#38bdf8" stroke-width="3" stroke-dasharray="12 8" stroke-dashoffset="5"/>
+                        
+                        <!-- Analytics Bar Graph -->
+                        <rect x="22" y="52" width="6" height="16" rx="2" fill="#38bdf8"/>
+                        <rect x="31" y="44" width="6" height="24" rx="2" fill="#60a5fa"/>
+                        <rect x="40" y="38" width="6" height="30" rx="2" fill="#c084fc"/>
+                        
+                        <!-- Speed Bolt -->
+                        <path d="M 58 12 L 38 52 L 52 50 L 32 88 L 82 40 L 58 42 Z" fill="url(#boltGrad)" stroke="#090d16" stroke-width="2"/>
+                    </svg>
                 </div>
+
                 <div>
-                    <h1 class="text-lg font-bold tracking-tight text-white">DTT Tracker</h1>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        DTT Tracker
+                    </h1>
                     <p class="text-xs text-gray-400">Dials & Talk Time Analytics</p>
                 </div>
             </div>
