@@ -20,9 +20,10 @@
             }
         }
     </script>
-    <!-- PapaParse & SheetJS -->
+    <!-- PapaParse, SheetJS & html2pdf -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/XLSX/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { background-color: #090d16; color: #f3f4f6; }
         .heat-red { background-color: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
@@ -102,17 +103,23 @@
                     </button>
                 </div>
 
-                <!-- Rep Search & Export -->
-                <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <input type="text" id="searchRep" placeholder="Search rep..." class="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500 w-full sm:w-48">
-                    <button id="exportBtn" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-medium py-2 px-4 rounded-xl text-xs transition flex items-center gap-1.5 whitespace-nowrap">
+                <!-- Rep Search, Excel Export & PDF Export -->
+                <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                    <input type="text" id="searchRep" placeholder="Search rep..." class="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500 flex-1 sm:w-40">
+                    
+                    <button id="exportPdfBtn" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 font-medium py-2 px-3.5 rounded-xl text-xs transition flex items-center gap-1.5 whitespace-nowrap">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        Export Excel
+                        PDF
+                    </button>
+
+                    <button id="exportBtn" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-medium py-2 px-3.5 rounded-xl text-xs transition flex items-center gap-1.5 whitespace-nowrap">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Excel
                     </button>
                 </div>
             </section>
 
-            <!-- Custom Date Selector (Shown only when 'Date Range' clicked) -->
+            <!-- Custom Date Selector -->
             <section id="customDateSection" class="glass-card rounded-2xl p-4 hidden">
                 <div class="flex flex-wrap items-center gap-4 text-xs">
                     <span class="text-gray-400 font-medium">Custom Range:</span>
@@ -149,11 +156,14 @@
             </section>
         </div>
 
-        <!-- Matrix Table Area -->
-        <section id="tableSection" class="glass-card rounded-2xl overflow-hidden border border-gray-800 hidden">
+        <!-- Matrix Table Area (PDF Container) -->
+        <section id="pdfContainer" class="glass-card rounded-2xl overflow-hidden border border-gray-800 hidden p-2">
             <!-- Table Header Legend -->
             <div class="p-4 border-b border-gray-800/80 bg-gray-900/40 flex flex-wrap items-center justify-between gap-4 text-xs">
-                <h2 class="font-semibold text-gray-300">DTT Performance Summary</h2>
+                <div>
+                    <h2 class="font-semibold text-gray-300">DTT Performance Summary</h2>
+                    <p class="text-[10px] text-gray-500">Calculated formula: (duration / 60) + 1 min</p>
+                </div>
                 <div class="flex items-center gap-3">
                     <span class="px-2 py-0.5 rounded text-[10px] heat-red">&lt; 50m</span>
                     <span class="px-2 py-0.5 rounded text-[10px] heat-yellow">50m - 69m</span>
@@ -190,7 +200,7 @@
         const csvFileInput = document.getElementById('csvFileInput');
         const fileNameDisplay = document.getElementById('fileNameDisplay');
         const appControls = document.getElementById('appControls');
-        const tableSection = document.getElementById('tableSection');
+        const pdfContainer = document.getElementById('pdfContainer');
         const statsBar = document.getElementById('statsBar');
 
         dropZone.addEventListener('click', () => csvFileInput.click());
@@ -241,7 +251,7 @@
 
             statsBar.classList.remove('hidden');
             appControls.classList.remove('hidden');
-            tableSection.classList.remove('hidden');
+            pdfContainer.classList.remove('hidden');
 
             updateRepDatalist();
             refreshDateFilterOptions();
@@ -270,7 +280,6 @@
             return d.toISOString().split('T')[0];
         }
 
-        // 4 Period Filter Preset Handler
         function setPresetPeriod(mode) {
             currentMode = mode;
             document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
@@ -293,7 +302,6 @@
             let end = new Date(maxDateObj);
 
             if (mode === 'weekly') {
-                // Get Monday of the max date week
                 const day = start.getDay();
                 const diff = start.getDate() - day + (day === 0 ? -6 : 1);
                 start.setDate(diff);
@@ -311,7 +319,6 @@
             renderMatrix();
         }
 
-        // Manual DTT Entry
         document.getElementById('manualDTTForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const rep = document.getElementById('manualRepInput').value.trim();
@@ -447,7 +454,7 @@
             tfoot.innerHTML = footHTML;
         }
 
-        // Filter Controls Listeners
+        // Filter Controls
         document.getElementById('startDate').addEventListener('change', renderMatrix);
         document.getElementById('endDate').addEventListener('change', renderMatrix);
         document.getElementById('searchRep').addEventListener('input', renderMatrix);
@@ -457,6 +464,19 @@
             const table = document.getElementById('dttTable');
             const wb = XLSX.utils.table_to_book(table, { sheet: "DTT_Report" });
             XLSX.writeFile(wb, "DTT_Performance_Summary.xlsx");
+        });
+
+        // PDF Export
+        document.getElementById('exportPdfBtn').addEventListener('click', () => {
+            const element = document.getElementById('pdfContainer');
+            const opt = {
+                margin:       [0.3, 0.3, 0.3, 0.3],
+                filename:     `DTT_Report_${currentMode.toUpperCase()}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, backgroundColor: '#090d16' },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+            };
+            html2pdf().set(opt).from(element).save();
         });
     </script>
 </body>
