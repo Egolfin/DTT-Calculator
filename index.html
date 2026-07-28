@@ -28,11 +28,11 @@
         body { background-color: #090d16; color: #f3f4f6; }
         
         /* Dark Mode Badge Styles */
-        .heat-red { background-color: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .heat-yellow { background-color: rgba(245, 158, 11, 0.15); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .heat-green { background-color: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .heat-red { background-color: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .heat-yellow { background-color: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .heat-green { background-color: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
         
-        .glass-card { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-card { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .btn-period { transition: all 0.2s ease; }
         .btn-period.active { background-color: #6366f1; color: #ffffff; border-color: #6366f1; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
         
@@ -54,15 +54,19 @@
             background-color: #111827;
         }
 
-        /* PRINT / PDF GENERATION STYLES */
+        /* DARK MODE PDF PRINT ENGINE OVERRIDES */
         @media print {
             @page {
                 size: letter landscape;
-                margin: 0.4in;
+                margin: 0.3in;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             body {
-                background-color: #ffffff !important;
-                color: #0f172a !important;
+                background-color: #090d16 !important;
+                color: #f3f4f6 !important;
                 font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
             }
             header, section:not(#pdfContainer), #appControls, .glass-card:not(#pdfContainer) {
@@ -70,10 +74,10 @@
             }
             #pdfContainer {
                 display: block !important;
-                border: none !important;
-                background: #ffffff !important;
+                border: 1px solid #1f2937 !important;
+                background-color: #090d16 !important;
                 backdrop-filter: none !important;
-                padding: 0 !important;
+                padding: 10px !important;
                 box-shadow: none !important;
             }
             #tableScrollWrapper {
@@ -83,7 +87,7 @@
             table {
                 width: 100% !important;
                 border-collapse: collapse !important;
-                border: 1px solid #cbd5e1 !important;
+                border: 1px solid #1f2937 !important;
             }
             thead {
                 display: table-header-group !important;
@@ -92,29 +96,31 @@
                 page-break-inside: avoid !important;
             }
             th, td {
-                border: 1px solid #cbd5e1 !important;
+                border: 1px solid #1f2937 !important;
                 padding: 6px 8px !important;
-                color: #0f172a !important;
+                color: #f3f4f6 !important;
                 font-size: 10px !important;
                 position: static !important;
-                background: #ffffff !important;
+                background-color: #0d1322 !important;
             }
             th {
-                background-color: #f1f5f9 !important;
+                background-color: #111827 !important;
+                color: #9ca3af !important;
                 font-weight: bold !important;
                 text-transform: uppercase !important;
             }
-            .heat-red { background-color: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; }
-            .heat-yellow { background-color: #fef9c3 !important; color: #854d0e !important; border: 1px solid #fde68a !important; }
-            .heat-green { background-color: #dcfce7 !important; color: #166534 !important; border: 1px solid #86efac !important; }
+            .heat-red { background-color: rgba(239, 68, 68, 0.25) !important; color: #fca5a5 !important; border: 1px solid rgba(239, 68, 68, 0.5) !important; }
+            .heat-yellow { background-color: rgba(245, 158, 11, 0.25) !important; color: #fde68a !important; border: 1px solid rgba(245, 158, 11, 0.5) !important; }
+            .heat-green { background-color: rgba(16, 185, 129, 0.25) !important; color: #6ee7b7 !important; border: 1px solid rgba(16, 185, 129, 0.5) !important; }
             
             .print-header {
                 display: flex !important;
                 justify-content: space-between !important;
                 align-items: center !important;
-                border-bottom: 2px solid #0f172a !important;
+                border-bottom: 2px solid #1f2937 !important;
                 padding-bottom: 8px !important;
                 margin-bottom: 12px !important;
+                background-color: #090d16 !important;
             }
         }
     </style>
@@ -257,17 +263,17 @@
         <!-- Matrix Table Area -->
         <section id="pdfContainer" class="glass-card rounded-2xl border border-gray-800 hidden p-2">
             
-            <!-- Clean Header for Screen & Print -->
+            <!-- Header for Screen & Print -->
             <div class="p-4 border-b border-gray-800/80 bg-gray-900/40 flex flex-wrap items-center justify-between gap-4 text-xs print-header">
                 <div>
-                    <h2 class="font-semibold text-gray-300 text-base" id="reportHeaderTitle">DTT Performance Summary</h2>
-                    <p class="text-[11px] text-gray-500" id="reportSubtitle">Formula: (Duration/60) + 1 min buffer per call</p>
+                    <h2 class="font-semibold text-gray-200 text-base" id="reportHeaderTitle">DTT Performance Summary</h2>
+                    <p class="text-[11px] text-gray-400" id="reportSubtitle">Formula: (Duration/60) + 1 min buffer per call</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <span class="px-2 py-0.5 rounded text-[10px] heat-red">&lt; 50m</span>
                     <span class="px-2 py-0.5 rounded text-[10px] heat-yellow">50m - 69m</span>
                     <span class="px-2 py-0.5 rounded text-[10px] heat-green">&ge; 70m</span>
-                    <span class="text-gray-500 border-l border-gray-800 pl-3">Target: 350m/week</span>
+                    <span class="text-gray-400 border-l border-gray-800 pl-3">Target: 350m/week</span>
                 </div>
             </div>
 
@@ -763,7 +769,7 @@
             XLSX.writeFile(wb, "DTT_Performance_Summary.xlsx");
         });
 
-        // Native Native Browser Print for Perfect PDF Output
+        // Dark Mode PDF Generation via Native Browser Print
         document.getElementById('exportPdfBtn').addEventListener('click', () => {
             window.print();
         });
