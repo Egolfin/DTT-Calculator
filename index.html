@@ -76,7 +76,7 @@
                     </svg>
                 </div>
                 <h3 class="text-base font-semibold text-gray-200 mt-4">Drop outreach call report CSV here</h3>
-                <p class="text-xs text-gray-500 mt-1">or click to browse from computer</p>
+                <p class="text-xs text-gray-500 mt-1">or click to browse from computer (data saves automatically)</p>
                 <p id="fileNameDisplay" class="text-xs font-mono text-indigo-400 mt-3 hidden"></p>
             </div>
         </section>
@@ -156,9 +156,8 @@
             </section>
         </div>
 
-        <!-- Matrix Table Area (PDF Container) -->
+        <!-- Matrix Table Area -->
         <section id="pdfContainer" class="glass-card rounded-2xl overflow-hidden border border-gray-800 hidden p-2">
-            <!-- Table Header Legend -->
             <div class="p-4 border-b border-gray-800/80 bg-gray-900/40 flex flex-wrap items-center justify-between gap-4 text-xs">
                 <div>
                     <h2 class="font-semibold text-gray-300">DTT Performance Summary</h2>
@@ -195,6 +194,85 @@
         let parsedDates = [];
         let allKnownReps = new Set();
         let currentMode = 'weekly';
+        let fileName = '';
+
+        // --- INDEXED DB STORAGE SETUP ---
+        const DB_NAME = 'DTT_Analytics_DB';
+        const DB_VERSION = 1;
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('app_state')) {
+                        db.createObjectStore('app_state');
+                    }
+                };
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        async function saveAppState() {
+            try {
+                const db = await openDB();
+                const tx = db.transaction('app_state', 'readwrite');
+                const store = tx.objectStore('app_state');
+                const state = {
+                    rawCallData,
+                    manualEntries,
+                    fileName,
+                    currentMode
+                };
+                store.put(state, 'current_data');
+            } catch (err) {
+                console.error('Failed to save to IndexedDB:', err);
+            }
+        }
+
+        async function loadAppState() {
+            try {
+                const db = await openDB();
+                const tx = db.transaction('app_state', 'readonly');
+                const store = tx.objectStore('app_state');
+                const request = store.get('current_data');
+                
+                request.onsuccess = () => {
+                    const savedState = request.result;
+                    if (savedState && savedState.rawCallData && savedState.rawCallData.length > 0) {
+                        rawCallData = savedState.rawCallData || [];
+                        manualEntries = savedState.manualEntries || [];
+                        fileName = savedState.fileName || 'Restored Session';
+                        currentMode = savedState.currentMode || 'weekly';
+
+                        allKnownReps.clear();
+                        rawCallData.forEach(d => allKnownReps.add(d.rep));
+                        manualEntries.forEach(m => allKnownReps.add(m.rep));
+
+                        fileNameDisplay.textContent = `File: ${fileName} (Saved Session)`;
+                        fileNameDisplay.classList.remove('hidden');
+
+                        document.getElementById('statTotalCalls').textContent = rawCallData.length.toLocaleString();
+                        document.getElementById('statActiveReps').textContent = allKnownReps.size;
+
+                        statsBar.classList.remove('hidden');
+                        appControls.classList.remove('hidden');
+                        pdfContainer.classList.remove('hidden');
+
+                        updateRepDatalist();
+                        refreshDateFilterOptions();
+                        renderManualEntriesList();
+                        setPresetPeriod(currentMode);
+                    }
+                };
+            } catch (err) {
+                console.error('Failed to load state:', err);
+            }
+        }
+
+        // --- APP INITIALIZATION & EVENT LISTENERS ---
+        window.addEventListener('DOMContentLoaded', loadAppState);
 
         const dropZone = document.getElementById('dropZone');
         const csvFileInput = document.getElementById('csvFileInput');
@@ -212,13 +290,17 @@
         csvFileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
 
         function handleFile(file) {
-            fileNameDisplay.textContent = `File: ${file.name}`;
+            fileName = file.name;
+            fileNameDisplay.textContent = `File: ${fileName}`;
             fileNameDisplay.classList.remove('hidden');
 
             Papa.parse(file, {
                 header: true,
                 skipEmptyLines: true,
-                complete: function(results) { processCSVData(results.data); }
+                complete: function(results) { 
+                    manualEntries = []; // Clear previous manual logs on new file upload
+                    processCSVData(results.data); 
+                }
             });
         }
 
@@ -256,6 +338,7 @@
             updateRepDatalist();
             refreshDateFilterOptions();
             setPresetPeriod('weekly');
+            saveAppState();
         }
 
         function updateRepDatalist() {
@@ -317,6 +400,7 @@
             }
 
             renderMatrix();
+            saveAppState();
         }
 
         document.getElementById('manualDTTForm').addEventListener('submit', (e) => {
@@ -332,6 +416,7 @@
                 refreshDateFilterOptions();
                 renderManualEntriesList();
                 renderMatrix();
+                saveAppState();
                 document.getElementById('manualMinutesInput').value = '';
             }
         });
@@ -363,6 +448,7 @@
             manualEntries = manualEntries.filter(m => m.id !== id);
             renderManualEntriesList();
             renderMatrix();
+            saveAppState();
         };
 
         function getDailyHeatClass(val) {
