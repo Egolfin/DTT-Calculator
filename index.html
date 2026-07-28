@@ -20,10 +20,10 @@
             }
         }
     </script>
-    <!-- PapaParse, SheetJS & html2pdf -->
+    <!-- PapaParse & SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
         body { background-color: #090d16; color: #f3f4f6; }
         
@@ -54,31 +54,69 @@
             background-color: #111827;
         }
 
-        /* PDF Clean Printable Layout Overrides */
-        .pdf-export-mode {
-            background-color: #ffffff !important;
-            color: #0f172a !important;
-            padding: 20px !important;
+        /* PRINT / PDF GENERATION STYLES */
+        @media print {
+            @page {
+                size: letter landscape;
+                margin: 0.4in;
+            }
+            body {
+                background-color: #ffffff !important;
+                color: #0f172a !important;
+                font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+            }
+            header, section:not(#pdfContainer), #appControls, .glass-card:not(#pdfContainer) {
+                display: none !important;
+            }
+            #pdfContainer {
+                display: block !important;
+                border: none !important;
+                background: #ffffff !important;
+                backdrop-filter: none !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+            }
+            #tableScrollWrapper {
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                border: 1px solid #cbd5e1 !important;
+            }
+            thead {
+                display: table-header-group !important;
+            }
+            tr {
+                page-break-inside: avoid !important;
+            }
+            th, td {
+                border: 1px solid #cbd5e1 !important;
+                padding: 6px 8px !important;
+                color: #0f172a !important;
+                font-size: 10px !important;
+                position: static !important;
+                background: #ffffff !important;
+            }
+            th {
+                background-color: #f1f5f9 !important;
+                font-weight: bold !important;
+                text-transform: uppercase !important;
+            }
+            .heat-red { background-color: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; }
+            .heat-yellow { background-color: #fef9c3 !important; color: #854d0e !important; border: 1px solid #fde68a !important; }
+            .heat-green { background-color: #dcfce7 !important; color: #166534 !important; border: 1px solid #86efac !important; }
+            
+            .print-header {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                border-bottom: 2px solid #0f172a !important;
+                padding-bottom: 8px !important;
+                margin-bottom: 12px !important;
+            }
         }
-        .pdf-export-mode table {
-            border: 1px solid #cbd5e1 !important;
-        }
-        .pdf-export-mode th {
-            background-color: #f1f5f9 !important;
-            color: #1e293b !important;
-            border-bottom: 2px solid #cbd5e1 !important;
-            position: static !important;
-        }
-        .pdf-export-mode td {
-            color: #0f172a !important;
-            border-bottom: 1px solid #e2e8f0 !important;
-            position: static !important;
-            background-color: #ffffff !important;
-        }
-        .pdf-export-mode .heat-red { background-color: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important; }
-        .pdf-export-mode .heat-yellow { background-color: #fef9c3 !important; color: #854d0e !important; border: 1px solid #fde68a !important; }
-        .pdf-export-mode .heat-green { background-color: #dcfce7 !important; color: #166534 !important; border: 1px solid #86efac !important; }
-        .pdf-export-mode tr { page-break-inside: avoid !important; }
     </style>
 </head>
 <body class="min-h-screen font-sans antialiased selection:bg-indigo-500 selection:text-white">
@@ -166,7 +204,7 @@
                 </div>
             </section>
 
-            <!-- Quarter Selector Section (Shown when QTD is active) -->
+            <!-- Quarter Selector Section -->
             <section id="qtdSection" class="glass-card rounded-2xl p-4 hidden">
                 <div class="flex items-center gap-3 text-xs">
                     <span class="text-gray-400 font-medium">Select Quarter:</span>
@@ -179,7 +217,7 @@
                 </div>
             </section>
 
-            <!-- Custom Date Selector Section (Shown when Date Range is active) -->
+            <!-- Custom Date Selector Section -->
             <section id="customDateSection" class="glass-card rounded-2xl p-4 hidden">
                 <div class="flex flex-wrap items-center gap-4 text-xs">
                     <span class="text-gray-400 font-medium">Custom Range:</span>
@@ -219,11 +257,11 @@
         <!-- Matrix Table Area -->
         <section id="pdfContainer" class="glass-card rounded-2xl border border-gray-800 hidden p-2">
             
-            <!-- Clean Header for PDF / Screen -->
-            <div class="p-4 border-b border-gray-800/80 bg-gray-900/40 flex flex-wrap items-center justify-between gap-4 text-xs">
+            <!-- Clean Header for Screen & Print -->
+            <div class="p-4 border-b border-gray-800/80 bg-gray-900/40 flex flex-wrap items-center justify-between gap-4 text-xs print-header">
                 <div>
                     <h2 class="font-semibold text-gray-300 text-base" id="reportHeaderTitle">DTT Performance Summary</h2>
-                    <p class="text-[11px] text-gray-500" id="reportSubtitle">Formula: (Duration in sec / 60) + 1 min buffer per call</p>
+                    <p class="text-[11px] text-gray-500" id="reportSubtitle">Formula: (Duration/60) + 1 min buffer per call</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <span class="px-2 py-0.5 rounded text-[10px] heat-red">&lt; 50m</span>
@@ -577,7 +615,6 @@
             const startDate = new Date(startDateStr + 'T00:00:00');
             const endDate = new Date(endDateStr + 'T00:00:00');
 
-            // Update Report Subtitle
             document.getElementById('reportHeaderTitle').textContent = `DTT Performance Summary (${currentMode.toUpperCase()})`;
             document.getElementById('reportSubtitle').textContent = `Range: ${startDateStr} to ${endDateStr} • Formula: (Duration/60) + 1 min`;
 
@@ -726,29 +763,9 @@
             XLSX.writeFile(wb, "DTT_Performance_Summary.xlsx");
         });
 
-        // Professional Clean PDF Export Handler
+        // Native Native Browser Print for Perfect PDF Output
         document.getElementById('exportPdfBtn').addEventListener('click', () => {
-            const pdfTarget = document.getElementById('pdfContainer');
-            const tableWrapper = document.getElementById('tableScrollWrapper');
-
-            // 1. Temporarily expand container height and switch to light print theme
-            tableWrapper.classList.remove('max-h-[600px]');
-            pdfTarget.classList.add('pdf-export-mode');
-
-            const opt = {
-                margin:       [0.3, 0.3, 0.3, 0.3],
-                filename:     `DTT_Report_${currentMode.toUpperCase()}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, backgroundColor: '#ffffff' },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' },
-                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-            };
-
-            html2pdf().set(opt).from(pdfTarget).save().then(() => {
-                // 2. Revert back to screen dark mode layout
-                tableWrapper.classList.add('max-h-[600px]');
-                pdfTarget.classList.remove('pdf-export-mode');
-            });
+            window.print();
         });
     </script>
 </body>
