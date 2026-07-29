@@ -192,7 +192,7 @@
                     </svg>
                 </div>
                 <h3 class="text-base font-semibold text-gray-200 mt-4">Drop outreach call report CSV here</h3>
-                <p class="text-xs text-gray-500 mt-1">or click to browse from computer (data saves automatically)</p>
+                <p class="text-xs text-gray-500 mt-1">or click to browse from computer (data & manual entries save automatically)</p>
                 <p id="fileNameDisplay" class="text-xs font-mono text-indigo-400 mt-3 hidden"></p>
             </div>
         </section>
@@ -410,37 +410,40 @@
                 
                 request.onsuccess = () => {
                     const savedState = request.result;
-                    if (savedState && savedState.rawCallData && savedState.rawCallData.length > 0) {
-                        rawCallData = savedState.rawCallData || [];
+                    if (savedState) {
                         manualEntries = savedState.manualEntries || [];
-                        fileName = savedState.fileName || 'Restored Session';
-                        currentMode = savedState.currentMode || 'weekly';
-
-                        if (savedState.selectedQuarter) {
-                            document.getElementById('quarterSelect').value = savedState.selectedQuarter;
-                        }
-                        if (savedState.selectedTeam) {
-                            document.getElementById('teamSelect').value = savedState.selectedTeam;
-                        }
-
-                        allKnownReps.clear();
-                        rawCallData.forEach(d => allKnownReps.add(d.rep));
-                        manualEntries.forEach(m => allKnownReps.add(m.rep));
-
-                        fileNameDisplay.textContent = `File: ${fileName} (Saved Session)`;
-                        fileNameDisplay.classList.remove('hidden');
-
-                        document.getElementById('statTotalCalls').textContent = rawCallData.length.toLocaleString();
-                        document.getElementById('statActiveReps').textContent = allKnownReps.size;
-
-                        statsBar.classList.remove('hidden');
-                        appControls.classList.remove('hidden');
-                        pdfContainer.classList.remove('hidden');
-
-                        updateRepDatalist();
-                        refreshDateFilterOptions();
                         renderManualEntriesList();
-                        setPresetPeriod(currentMode);
+
+                        if (savedState.rawCallData && savedState.rawCallData.length > 0) {
+                            rawCallData = savedState.rawCallData || [];
+                            fileName = savedState.fileName || 'Restored Session';
+                            currentMode = savedState.currentMode || 'weekly';
+
+                            if (savedState.selectedQuarter) {
+                                document.getElementById('quarterSelect').value = savedState.selectedQuarter;
+                            }
+                            if (savedState.selectedTeam) {
+                                document.getElementById('teamSelect').value = savedState.selectedTeam;
+                            }
+
+                            allKnownReps.clear();
+                            rawCallData.forEach(d => allKnownReps.add(d.rep));
+                            manualEntries.forEach(m => allKnownReps.add(m.rep));
+
+                            fileNameDisplay.textContent = `File: ${fileName} (Saved Session)`;
+                            fileNameDisplay.classList.remove('hidden');
+
+                            document.getElementById('statTotalCalls').textContent = rawCallData.length.toLocaleString();
+                            document.getElementById('statActiveReps').textContent = allKnownReps.size;
+
+                            statsBar.classList.remove('hidden');
+                            appControls.classList.remove('hidden');
+                            pdfContainer.classList.remove('hidden');
+
+                            updateRepDatalist();
+                            refreshDateFilterOptions();
+                            setPresetPeriod(currentMode);
+                        }
                     }
                 };
             } catch (err) {
@@ -474,7 +477,7 @@
                 header: true,
                 skipEmptyLines: true,
                 complete: function(results) { 
-                    manualEntries = [];
+                    // Manual entries persist across new CSV file uploads!
                     processCSVData(results.data); 
                 }
             });
@@ -503,6 +506,8 @@
                     allKnownReps.add(repName);
                 }
             });
+
+            manualEntries.forEach(m => allKnownReps.add(m.rep));
 
             document.getElementById('statTotalCalls').textContent = rawCallData.length.toLocaleString();
             document.getElementById('statActiveReps').textContent = allKnownReps.size;
