@@ -147,19 +147,12 @@
                                 <stop offset="100%" stop-color="#06b6d4"/>
                             </linearGradient>
                         </defs>
-                        <!-- Outer Rim -->
                         <circle cx="50" cy="50" r="46" fill="#090d16" stroke="#1d4ed8" stroke-width="4"/>
                         <circle cx="50" cy="50" r="38" fill="url(#dialBg)" fill-opacity="0.25"/>
-                        
-                        <!-- Dial Ticks -->
                         <circle cx="50" cy="50" r="38" stroke="#38bdf8" stroke-width="3" stroke-dasharray="12 8" stroke-dashoffset="5"/>
-                        
-                        <!-- Analytics Bar Graph -->
                         <rect x="22" y="52" width="6" height="16" rx="2" fill="#38bdf8"/>
                         <rect x="31" y="44" width="6" height="24" rx="2" fill="#60a5fa"/>
                         <rect x="40" y="38" width="6" height="30" rx="2" fill="#c084fc"/>
-                        
-                        <!-- Speed Bolt -->
                         <path d="M 58 12 L 38 52 L 52 50 L 32 88 L 82 40 L 58 42 Z" fill="url(#boltGrad)" stroke="#090d16" stroke-width="2"/>
                     </svg>
                 </div>
@@ -226,16 +219,28 @@
                     </button>
                 </div>
 
-                <!-- Rep Search, Excel Export & PDF Export -->
+                <!-- Team/Manager Selector, Rep Search, Excel & PDF -->
                 <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                    <input type="text" id="searchRep" placeholder="Search rep..." class="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500 flex-1 sm:w-40">
+                    <!-- Manager / Team Dropdown -->
+                    <select id="teamSelect" onchange="renderMatrix()" class="bg-gray-900 border border-gray-800 text-indigo-300 font-medium rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500">
+                        <option value="ALL">All Teams (Managers)</option>
+                        <option value="Alejandro Bustos">Alejandro Bustos' Team</option>
+                        <option value="Emmanuel Jara">Emmanuel Jara's Team</option>
+                        <option value="Ericka Jimenez">Ericka Jimenez's Team</option>
+                        <option value="Maria Jose Herrera">Maria Jose Herrera's Team</option>
+                        <option value="Pamela Robles">Pamela Robles' Team</option>
+                        <option value="Samuel Soto">Samuel Soto's Team</option>
+                        <option value="Saúl Chaves">Saúl Chaves' Team</option>
+                    </select>
+
+                    <input type="text" id="searchRep" placeholder="Search rep..." class="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500 flex-1 sm:w-36">
                     
-                    <button id="exportPdfBtn" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 font-medium py-2 px-3.5 rounded-xl text-xs transition flex items-center gap-1.5 whitespace-nowrap">
+                    <button id="exportPdfBtn" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 font-medium py-2 px-3 rounded-xl text-xs transition flex items-center gap-1.5 whitespace-nowrap">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        Download PDF
+                        PDF
                     </button>
 
-                    <button id="exportBtn" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-medium py-2 px-3.5 rounded-xl text-xs transition flex items-center gap-1.5 whitespace-nowrap">
+                    <button id="exportBtn" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-medium py-2 px-3 rounded-xl text-xs transition flex items-center gap-1.5 whitespace-nowrap">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         Excel
                     </button>
@@ -335,6 +340,30 @@
         let currentMode = 'weekly';
         let fileName = '';
 
+        // --- TEAM / MANAGER MAPPING ---
+        const teamMapping = {
+            "Alejandro Bustos": ["Allen Hodgson", "Walter Salazar", "Alejandro Fonseca", "Kevin Cordero", "Valentina Henriquez", "Esteban Robles", "Cristhian Castro", "Jose Gonzalez", "Kiara Molina", "Sharon Mora", "Eduardo Murillo", "Fabiana Quiros", "Jeremy Chaves"],
+            "Emmanuel Jara": ["Bryan Garcia", "Kiurwen West", "Gareck Zuniga", "Gareck Zuñiga", "Sebastian Hernandez", "Sergio Villegas", "Erick Pacheco", "Kiara Blanco", "Valeria Carvajal", "Alejandro Monge", "Aaron Gomez", "Aaron Gómez", "Hector Arroyo", "Felipe Sancho", "Francis Viales"],
+            "Ericka Jimenez": ["David Cordero", "Marcel Torres", "Jorge Salgado", "Jorge Zuniga", "Jorge Zuñiga", "Yorlibeth Aguirre", "Kenny Segura", "Brenda Diaz", "Jose Perez", "Anthonny Castro", "Josua Brown", "Johayling Melendez"],
+            "Maria Jose Herrera": ["Sebastian Rodriguez", "Valeria Quiros", "Jean Carlo Torres", "Jean Torres", "Pablo Granados", "Dylan Cordero", "Jose Carmona", "Mariela Chaves", "Maria Diaz", "Esteban Golfin", "Neigel Solano", "Mariano Orozco", "Frank Mesen", "Jeremy Perez", "Vito Nicollini"],
+            "Pamela Robles": ["Alvaro Brenes", "Avaro Brenes", "Tifanny Ramos", "Catalina Garcia", "Catalina García", "Gerlin Rivera", "Maria Ramirez", "Ana Palacios", "Mariana Gutierrez", "Mariana Gutiérrez", "Virginia Ardila", "Hersan Sancho", "Emmanuel Castillo", "Dylan Rojas", "Mario Mesen", "Mario Mesén", "Suann Monardez", "Yoser Arley"],
+            "Samuel Soto": ["Orlando Steller"],
+            "Saúl Chaves": ["Bruno Lara", "Santiago Ramirez", "Ricardo Urena", "Ricardo Ureña", "Maricela Miranda", "Alvaro Porras", "Camila Zeledon", "Victoria Castillo", "Juan Hernandez", "Sergio Rosales", "Pablo Cantillo", "Pablo Cantillo Ramirez", "Joshua Nunez", "Joshua Nuñez", "Marck Ali", "Ruben Delgado"]
+        };
+
+        function normalizeName(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+        }
+
+        function isRepInTeam(repName, teamManager) {
+            if (teamManager === 'ALL') return true;
+            const members = teamMapping[teamManager];
+            if (!members) return true;
+
+            const normRep = normalizeName(repName);
+            return members.some(m => normalizeName(m) === normRep);
+        }
+
         // --- INDEXED DB STORAGE SETUP ---
         const DB_NAME = 'DTT_Analytics_DB';
         const DB_VERSION = 1;
@@ -363,7 +392,8 @@
                     manualEntries,
                     fileName,
                     currentMode,
-                    selectedQuarter: document.getElementById('quarterSelect').value
+                    selectedQuarter: document.getElementById('quarterSelect').value,
+                    selectedTeam: document.getElementById('teamSelect').value
                 };
                 store.put(state, 'current_data');
             } catch (err) {
@@ -388,6 +418,9 @@
 
                         if (savedState.selectedQuarter) {
                             document.getElementById('quarterSelect').value = savedState.selectedQuarter;
+                        }
+                        if (savedState.selectedTeam) {
+                            document.getElementById('teamSelect').value = savedState.selectedTeam;
                         }
 
                         allKnownReps.clear();
@@ -647,13 +680,15 @@
             const startDateStr = document.getElementById('startDate').value;
             const endDateStr = document.getElementById('endDate').value;
             const searchRep = document.getElementById('searchRep').value.toLowerCase();
+            const selectedTeam = document.getElementById('teamSelect').value;
 
             if (!startDateStr || !endDateStr) return;
 
             const startDate = new Date(startDateStr + 'T00:00:00');
             const endDate = new Date(endDateStr + 'T00:00:00');
 
-            document.getElementById('reportHeaderTitle').textContent = `DTT Performance Summary (${currentMode.toUpperCase()})`;
+            const teamLabel = selectedTeam === 'ALL' ? '' : ` • Team: ${selectedTeam}`;
+            document.getElementById('reportHeaderTitle').textContent = `DTT Performance Summary (${currentMode.toUpperCase()}${teamLabel})`;
             document.getElementById('reportSubtitle').textContent = `Range: ${startDateStr} to ${endDateStr} • Formula: (Duration/60) + 1 min`;
 
             let activeDates = [];
@@ -667,7 +702,10 @@
             const repTotals = {};
 
             const processItem = (item) => {
-                if (item.date >= startDateStr && item.date <= endDateStr && item.rep.toLowerCase().includes(searchRep)) {
+                if (item.date >= startDateStr && item.date <= endDateStr && 
+                    item.rep.toLowerCase().includes(searchRep) && 
+                    isRepInTeam(item.rep, selectedTeam)) {
+
                     if (!aggregated[item.rep]) aggregated[item.rep] = {};
                     if (!aggregated[item.rep][item.date]) aggregated[item.rep][item.date] = 0;
 
@@ -734,7 +772,7 @@
                     bodyHTML += `</tr>`;
                 });
 
-                tbody.innerHTML = bodyHTML || `<tr><td colspan="${monthsInQ.length + 2}" class="py-8 text-center text-gray-500 font-sans">No matching rep records for this quarter.</td></tr>`;
+                tbody.innerHTML = bodyHTML || `<tr><td colspan="${monthsInQ.length + 2}" class="py-8 text-center text-gray-500 font-sans">No matching rep records found for this team/quarter.</td></tr>`;
 
                 let footHTML = `<tr><td class="py-3 px-4 font-sans uppercase tracking-wider text-[11px] text-gray-400 sticky-col">Quarter Total</td>`;
                 monthsInQ.forEach(m => {
@@ -778,7 +816,7 @@
                     bodyHTML += `</tr>`;
                 });
 
-                tbody.innerHTML = bodyHTML || `<tr><td colspan="${activeDates.length + 2}" class="py-8 text-center text-gray-500 font-sans">No matching rep records for this filter period.</td></tr>`;
+                tbody.innerHTML = bodyHTML || `<tr><td colspan="${activeDates.length + 2}" class="py-8 text-center text-gray-500 font-sans">No matching rep records found for this team/filter.</td></tr>`;
 
                 let footHTML = `<tr><td class="py-3 px-4 font-sans uppercase tracking-wider text-[11px] text-gray-400 sticky-col">Total DTT</td>`;
                 activeDates.forEach(d => {
@@ -787,6 +825,8 @@
                 footHTML += `<td class="py-3 px-4 text-center text-indigo-400 font-bold bg-gray-900">${overallGrandTotal.toFixed(1)}</td></tr>`;
                 tfoot.innerHTML = footHTML;
             }
+
+            saveAppState();
         }
 
         // Filter Controls
