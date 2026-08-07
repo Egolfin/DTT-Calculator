@@ -136,7 +136,6 @@
         <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 
-                <!-- Speedometer & Lightning SVG Logo -->
                 <div class="h-10 w-10 relative flex items-center justify-center">
                     <svg class="w-10 h-10 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
@@ -199,7 +198,6 @@
         <!-- TAB 1: MATRIX VIEW CONTENT -->
         <div id="matrixTabView" class="space-y-8">
 
-            <!-- File Upload Area -->
             <section class="glass-card rounded-2xl p-8 text-center border border-gray-800 hover:border-indigo-500/50 transition-all duration-300">
                 <div id="dropZone" class="cursor-pointer group">
                     <input type="file" id="csvFileInput" accept=".csv" class="hidden" />
@@ -214,13 +212,9 @@
                 </div>
             </section>
 
-            <!-- Application Controls -->
             <div id="appControls" class="hidden space-y-6">
                 
-                <!-- Filter & View Selector Bar -->
                 <section class="glass-card rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
-                    
-                    <!-- 4 Main View Buttons -->
                     <div class="flex flex-wrap items-center gap-2">
                         <button id="btnWeekly" onclick="setPresetPeriod('weekly')" class="btn-period active px-4 py-2 rounded-xl text-xs font-semibold border border-gray-800 bg-gray-900 text-gray-300 hover:text-white">
                             Weekly
@@ -236,7 +230,6 @@
                         </button>
                     </div>
 
-                    <!-- Team/Manager Selector, Rep Search, Excel & PDF -->
                     <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                         <select id="teamSelect" onchange="renderMatrix()" class="bg-gray-900 border border-gray-800 text-indigo-300 font-medium rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500">
                             <option value="ALL">All Teams (Managers)</option>
@@ -263,7 +256,6 @@
                     </div>
                 </section>
 
-                <!-- Quarter Selector Section -->
                 <section id="qtdSection" class="glass-card rounded-2xl p-4 hidden">
                     <div class="flex items-center gap-3 text-xs">
                         <span class="text-gray-400 font-medium">Select Quarter:</span>
@@ -276,7 +268,6 @@
                     </div>
                 </section>
 
-                <!-- Custom Date Selector Section -->
                 <section id="customDateSection" class="glass-card rounded-2xl p-4 hidden">
                     <div class="flex flex-wrap items-center gap-4 text-xs">
                         <span class="text-gray-400 font-medium">Custom Range:</span>
@@ -286,7 +277,6 @@
                     </div>
                 </section>
 
-                <!-- Manual DTT Input Section -->
                 <section class="glass-card rounded-2xl p-5 border border-indigo-500/20">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-xs font-semibold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
@@ -296,11 +286,8 @@
                     <form id="manualDTTForm" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                         <input type="text" id="manualRepInput" list="repOptions" placeholder="Rep Name" required class="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:border-indigo-500">
                         <datalist id="repOptions"></datalist>
-
                         <input type="date" id="manualDateInput" required class="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:border-indigo-500">
-
                         <input type="number" id="manualMinutesInput" step="0.01" min="0.01" placeholder="DTT Minutes (e.g. 64.98)" required class="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:border-indigo-500">
-
                         <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 px-4 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20">
                             Add Minutes
                         </button>
@@ -343,7 +330,6 @@
                         <h2 class="text-base font-semibold text-gray-200">Manual DTT Log Repository</h2>
                         <p class="text-xs text-gray-400 mt-0.5">Record and manage all Zoom / Google Meet meeting minutes. Entries persist across all CSV uploads.</p>
                     </div>
-
                     <button id="exportManualExcelBtn" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-medium py-2 px-4 rounded-xl text-xs transition flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         Export Manual Records (Excel)
@@ -426,12 +412,10 @@
             if (teamManager === 'ALL') return true;
             const members = teamMapping[teamManager];
             if (!members) return true;
-
             const normRep = normalizeName(repName);
             return members.some(m => normalizeName(m) === normRep);
         }
 
-        // --- MAIN TAB SWITCHER ---
         function switchMainTab(tab) {
             document.getElementById('tabMatrixBtn').classList.remove('active');
             document.getElementById('tabManualBtn').classList.remove('active');
@@ -504,12 +488,8 @@
                             fileName = savedState.fileName || 'Restored Session';
                             currentMode = savedState.currentMode || 'weekly';
 
-                            if (savedState.selectedQuarter) {
-                                document.getElementById('quarterSelect').value = savedState.selectedQuarter;
-                            }
-                            if (savedState.selectedTeam) {
-                                document.getElementById('teamSelect').value = savedState.selectedTeam;
-                            }
+                            if (savedState.selectedQuarter) document.getElementById('quarterSelect').value = savedState.selectedQuarter;
+                            if (savedState.selectedTeam) document.getElementById('teamSelect').value = savedState.selectedTeam;
 
                             allKnownReps.clear();
                             rawCallData.forEach(d => allKnownReps.add(d.rep));
@@ -571,34 +551,29 @@
         function parseDateString(str) {
             if (!str) return null;
             
-            // Extract YYYY-MM-DD directly from ISO strings
-            if (str.includes('T')) {
-                return str.split('T')[0];
-            }
+            // 1. Exact Match YYYY-MM-DD (e.g. from ISO strings or generic reports)
+            const isoMatch = str.match(/(\d{4})-(\d{2})-(\d{2})/);
+            if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
             
-            // Parse month abbreviation strings like "Aug 06 2026" or "Aug 6 2026"
-            const months = {
-                jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
-                jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
-            };
-            
-            const match = str.match(/([a-zA-Z]{3})\s+(\d{1,2})\s+(\d{4})/);
-            if (match) {
-                const month = months[match[1].toLowerCase()];
-                const day = match[2].padStart(2, '0');
-                const year = match[3];
-                if (month && day && year) {
-                    return `${year}-${month}-${day}`;
-                }
+            // 2. Exact Match MM/DD/YYYY or M/D/YYYY
+            const usMatch = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            if (usMatch) return `${usMatch[3]}-${usMatch[1].padStart(2, '0')}-${usMatch[2].padStart(2, '0')}`;
+
+            // 3. Exact Match Text Abbreviation (e.g. "Aug 06 2026")
+            const months = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
+            const textMatch = str.match(/([a-zA-Z]{3})\s+(\d{1,2})\s+(\d{4})/);
+            if (textMatch) {
+                const month = months[textMatch[1].toLowerCase()];
+                if (month) return `${textMatch[3]}-${month}-${textMatch[2].padStart(2, '0')}`;
             }
 
-            // Fallback string split
-            let parts = str.trim().split(' ');
-            if (parts.length >= 3) {
-                let m = months[parts[0].toLowerCase().slice(0, 3)];
-                let d = parts[1].padStart(2, '0');
-                let y = parts[2];
-                if (m && d && y) return `${y}-${m}-${d}`;
+            // 4. Fallback purely relying on JS Date Constructor (Locally avoids timezone shifts)
+            let d = new Date(str);
+            if (!isNaN(d.getTime())) {
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
             }
 
             return null;
@@ -641,8 +616,8 @@
             refreshDateFilterOptions();
             
             if (parsedDates.length > 0) {
-                const maxDateStr = parsedDates[parsedDates.length - 1]; // e.g. "2026-08-07"
-                const monthNum = parseInt(maxDateStr.split('-')[1]);
+                const maxDateStr = parsedDates[parsedDates.length - 1];
+                const monthNum = parseInt(maxDateStr.split('-')[1], 10);
                 const quarter = Math.ceil(monthNum / 3);
                 document.getElementById('quarterSelect').value = quarter;
             }
@@ -662,23 +637,26 @@
         }
 
         function refreshDateFilterOptions() {
-            const allDates = [...rawCallData.map(d => d.date), ...manualEntries.map(m => m.date)].sort();
+            const allDates = [...rawCallData.map(d => d.date), ...manualEntries.map(m => m.date)]
+                .filter(d => d && d.includes('-')) // Ensure no nulls/NaNs break layout
+                .sort();
             parsedDates = [...new Set(allDates)];
         }
 
-        // --- PURE STRING DATE MATH HELPER (TIMEZONE-SAFE) ---
+        // --- PURE LOCAL STRING MATH FOR DATES (Solves the Timezone shift) ---
         function addDaysToStringDate(dateStr, days) {
+            if (!dateStr || !dateStr.includes('-')) return dateStr;
             const parts = dateStr.split('-');
-            const year = parseInt(parts[0]);
-            const month = parseInt(parts[1]) - 1;
-            const day = parseInt(parts[2]);
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
 
-            const d = new Date(Date.UTC(year, month, day));
-            d.setUTCDate(d.getUTCDate() + days);
+            const d = new Date(year, month, day);
+            d.setDate(d.getDate() + days);
 
-            const yyyy = d.getUTCFullYear();
-            const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-            const dd = String(d.getUTCDate()).padStart(2, '0');
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
             return `${yyyy}-${mm}-${dd}`;
         }
 
@@ -711,40 +689,27 @@
             let endStr = maxDateStr;
 
             if (mode === 'weekly') {
-                // Determine Monday of the week in pure string math
                 const parts = maxDateStr.split('-');
-                const utcDate = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
-                const dayOfWeek = utcDate.getUTCDay(); // 0 is Sun, 1 is Mon
+                const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                const dayOfWeek = d.getDay(); 
                 const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-                
                 startStr = addDaysToStringDate(maxDateStr, diffToMon);
-                endStr = maxDateStr;
             } else if (mode === 'monthly') {
                 const parts = maxDateStr.split('-');
                 startStr = `${parts[0]}-${parts[1]}-01`;
-                
-                const y = parseInt(parts[0]);
-                const m = parseInt(parts[1]);
-                const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+                const y = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10);
+                const lastDay = new Date(y, m, 0).getDate(); // Trick to get last day of local month
                 endStr = `${parts[0]}-${parts[1]}-${String(lastDay).padStart(2, '0')}`;
             } else if (mode === 'qtd') {
                 const parts = maxDateStr.split('-');
                 const year = parts[0];
-                const selectedQ = parseInt(document.getElementById('quarterSelect').value);
+                const selectedQ = parseInt(document.getElementById('quarterSelect').value, 10);
                 
-                if (selectedQ === 1) {
-                    startStr = `${year}-01-01`;
-                    endStr = `${year}-03-31`;
-                } else if (selectedQ === 2) {
-                    startStr = `${year}-04-01`;
-                    endStr = `${year}-06-30`;
-                } else if (selectedQ === 3) {
-                    startStr = `${year}-07-01`;
-                    endStr = `${year}-09-30`;
-                } else if (selectedQ === 4) {
-                    startStr = `${year}-10-01`;
-                    endStr = `${year}-12-31`;
-                }
+                if (selectedQ === 1) { startStr = `${year}-01-01`; endStr = `${year}-03-31`; }
+                else if (selectedQ === 2) { startStr = `${year}-04-01`; endStr = `${year}-06-30`; }
+                else if (selectedQ === 3) { startStr = `${year}-07-01`; endStr = `${year}-09-30`; }
+                else if (selectedQ === 4) { startStr = `${year}-10-01`; endStr = `${year}-12-31`; }
             }
 
             if (mode !== 'custom') {
@@ -764,7 +729,6 @@
             document.getElementById('manualBadgeCount').textContent = manualEntries.length;
         }
 
-        // --- MANUAL ENTRY LOGIC WITH FORM RESET ---
         function addManualRecord(rep, date, minutes, formElement) {
             const timestamp = new Date().toLocaleString();
             manualEntries.push({ id: Date.now(), rep, date, dtt: minutes, timestamp });
@@ -847,7 +811,6 @@
         function getWeeklyHeatClass(val, activeDaysCount) {
             const target = activeDaysCount * 70;
             const yellowThreshold = target * 0.714;
-
             if (val < yellowThreshold) return 'heat-red';
             if (val < target) return 'heat-yellow';
             return 'heat-green';
@@ -858,19 +821,28 @@
             const endDateStr = document.getElementById('endDate').value;
             const searchRep = document.getElementById('searchRep').value.toLowerCase();
             const selectedTeam = document.getElementById('teamSelect').value;
+            const tbody = document.getElementById('tableBody');
 
-            if (!startDateStr || !endDateStr) return;
+            if (!startDateStr || !endDateStr) {
+                // Failsafe to ensure table always renders something rather than blanking out.
+                document.getElementById('tableHead').innerHTML = '';
+                tbody.innerHTML = `<tr><td class="py-8 text-center text-rose-500 font-sans">Error: Invalid Date Range. Please re-select the period.</td></tr>`;
+                document.getElementById('tableFoot').innerHTML = '';
+                return;
+            }
 
             const teamLabel = selectedTeam === 'ALL' ? '' : ` • Team: ${selectedTeam}`;
             document.getElementById('reportHeaderTitle').textContent = `DTT Performance Summary (${currentMode.toUpperCase()}${teamLabel})`;
             document.getElementById('reportSubtitle').textContent = `Range: ${startDateStr} to ${endDateStr} • Formula: (Duration/60) + 1 min`;
 
-            // Build active dates using pure string arithmetic (no timezone drift!)
+            // Build active dates using pure string arithmetic to avoid Timezone offset drift
             let activeDates = [];
             let currStr = startDateStr;
-            while (currStr <= endDateStr) {
+            let loopGuard = 0;
+            while (currStr <= endDateStr && loopGuard < 1000) {
                 activeDates.push(currStr);
                 currStr = addDaysToStringDate(currStr, 1);
+                loopGuard++;
             }
 
             const aggregated = {};
@@ -895,17 +867,15 @@
             const sortedReps = Object.keys(aggregated).sort();
 
             const thead = document.getElementById('tableHead');
-            const tbody = document.getElementById('tableBody');
             const tfoot = document.getElementById('tableFoot');
 
-            // --- QUARTER VIEW ---
             if (currentMode === 'qtd') {
                 const monthsInQ = [];
                 activeDates.forEach(d => {
-                    const key = d.slice(0, 7); // e.g. "2026-08"
+                    const key = d.slice(0, 7); 
                     if (!monthsInQ.some(m => m.key === key)) {
                         const parts = d.split('-');
-                        const monthIndex = parseInt(parts[1]) - 1;
+                        const monthIndex = parseInt(parts[1], 10) - 1;
                         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
                         monthsInQ.push({ name: monthNames[monthIndex], key });
                     }
@@ -957,11 +927,11 @@
                 tfoot.innerHTML = footHTML;
 
             } else {
-                // --- DAILY MATRIX VIEW ---
+                // DAILY MATRIX VIEW (Weekly / Monthly / Custom)
                 let headerHTML = `<tr><th class="py-3 px-4 text-left border-b border-gray-800 text-gray-300 sticky-col">Rep Name</th>`;
                 activeDates.forEach(d => {
                     const parts = d.split('-');
-                    const formattedDate = `${parseInt(parts[1])}/${parseInt(parts[2])}`;
+                    const formattedDate = `${parseInt(parts[1], 10)}/${parseInt(parts[2], 10)}`;
                     headerHTML += `<th class="py-3 px-3 text-center border-b border-gray-800 min-w-[50px]">${formattedDate}</th>`;
                 });
                 headerHTML += `<th class="py-3 px-4 text-center border-b border-gray-800 bg-gray-900/90 text-gray-200">Total</th></tr>`;
@@ -1005,19 +975,16 @@
             saveAppState();
         }
 
-        // Filter Controls
         document.getElementById('startDate').addEventListener('change', renderMatrix);
         document.getElementById('endDate').addEventListener('change', renderMatrix);
         document.getElementById('searchRep').addEventListener('input', renderMatrix);
 
-        // Excel Export (DTT Matrix)
         document.getElementById('exportBtn').addEventListener('click', () => {
             const table = document.getElementById('dttTable');
             const wb = XLSX.utils.table_to_book(table, { sheet: "DTT_Report" });
             XLSX.writeFile(wb, "DTT_Performance_Summary.xlsx");
         });
 
-        // Excel Export (Manual Records Tab)
         document.getElementById('exportManualExcelBtn').addEventListener('click', () => {
             if (manualEntries.length === 0) {
                 alert("No manual entries available to export.");
@@ -1036,7 +1003,6 @@
             XLSX.writeFile(wb, "Manual_DTT_Records.xlsx");
         });
 
-        // Dark Mode PDF Generation via Native Browser Print
         document.getElementById('exportPdfBtn').addEventListener('click', () => {
             window.print();
         });
