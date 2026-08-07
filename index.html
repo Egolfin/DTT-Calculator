@@ -567,7 +567,7 @@
             });
         }
 
-        // --- TIMEZONE-SAFE DATE PARSER ---
+        // --- TIMEZONE-SAFE PURE STRING DATE PARSER ---
         function parseDateString(str) {
             if (!str) return null;
             
@@ -592,10 +592,16 @@
                 }
             }
 
-            // Fallback parsing
-            let d = new Date(str);
-            if (isNaN(d.getTime())) return null;
-            return d.toISOString().split('T')[0];
+            // Fallback string split
+            let parts = str.trim().split(' ');
+            if (parts.length >= 3) {
+                let m = months[parts[0].toLowerCase().slice(0, 3)];
+                let d = parts[1].padStart(2, '0');
+                let y = parts[2];
+                if (m && d && y) return `${y}-${m}-${d}`;
+            }
+
+            return null;
         }
 
         function processCSVData(data) {
@@ -635,8 +641,9 @@
             refreshDateFilterOptions();
             
             if (parsedDates.length > 0) {
-                const maxDateObj = new Date(parsedDates[parsedDates.length - 1] + 'T00:00:00');
-                const quarter = Math.floor((maxDateObj.getMonth() + 3) / 3);
+                const maxDateStr = parsedDates[parsedDates.length - 1]; // e.g. "2026-08-07"
+                const monthNum = parseInt(maxDateStr.split('-')[1]);
+                const quarter = Math.ceil(monthNum / 3);
                 document.getElementById('quarterSelect').value = quarter;
             }
 
@@ -657,6 +664,22 @@
         function refreshDateFilterOptions() {
             const allDates = [...rawCallData.map(d => d.date), ...manualEntries.map(m => m.date)].sort();
             parsedDates = [...new Set(allDates)];
+        }
+
+        // --- PURE STRING DATE MATH HELPER (TIMEZONE-SAFE) ---
+        function addDaysToStringDate(dateStr, days) {
+            const parts = dateStr.split('-');
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1;
+            const day = parseInt(parts[2]);
+
+            const d = new Date(Date.UTC(year, month, day));
+            d.setUTCDate(d.getUTCDate() + days);
+
+            const yyyy = d.getUTCFullYear();
+            const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+            const dd = String(d.getUTCDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
         }
 
         function setPresetPeriod(mode) {
@@ -683,39 +706,50 @@
 
             if (parsedDates.length === 0) return;
 
-            const maxDateObj = new Date(parsedDates[parsedDates.length - 1] + 'T00:00:00');
-            let start = new Date(maxDateObj);
-            let end = new Date(maxDateObj);
+            const maxDateStr = parsedDates[parsedDates.length - 1]; // e.g. "2026-08-07"
+            let startStr = maxDateStr;
+            let endStr = maxDateStr;
 
             if (mode === 'weekly') {
-                const day = start.getDay();
-                const diff = start.getDate() - day + (day === 0 ? -6 : 1);
-                start.setDate(diff);
+                // Determine Monday of the week in pure string math
+                const parts = maxDateStr.split('-');
+                const utcDate = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
+                const dayOfWeek = utcDate.getUTCDay(); // 0 is Sun, 1 is Mon
+                const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                
+                startStr = addDaysToStringDate(maxDateStr, diffToMon);
+                endStr = maxDateStr;
             } else if (mode === 'monthly') {
-                start.setDate(1);
-                end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+                const parts = maxDateStr.split('-');
+                startStr = `${parts[0]}-${parts[1]}-01`;
+                
+                const y = parseInt(parts[0]);
+                const m = parseInt(parts[1]);
+                const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+                endStr = `${parts[0]}-${parts[1]}-${String(lastDay).padStart(2, '0')}`;
             } else if (mode === 'qtd') {
-                const year = maxDateObj.getFullYear();
+                const parts = maxDateStr.split('-');
+                const year = parts[0];
                 const selectedQ = parseInt(document.getElementById('quarterSelect').value);
                 
                 if (selectedQ === 1) {
-                    start = new Date(year, 0, 1);
-                    end = new Date(year, 2, 31);
+                    startStr = `${year}-01-01`;
+                    endStr = `${year}-03-31`;
                 } else if (selectedQ === 2) {
-                    start = new Date(year, 3, 1);
-                    end = new Date(year, 5, 30);
+                    startStr = `${year}-04-01`;
+                    endStr = `${year}-06-30`;
                 } else if (selectedQ === 3) {
-                    start = new Date(year, 6, 1);
-                    end = new Date(year, 8, 30);
+                    startStr = `${year}-07-01`;
+                    endStr = `${year}-09-30`;
                 } else if (selectedQ === 4) {
-                    start = new Date(year, 9, 1);
-                    end = new Date(year, 11, 31);
+                    startStr = `${year}-10-01`;
+                    endStr = `${year}-12-31`;
                 }
             }
 
             if (mode !== 'custom') {
-                document.getElementById('startDate').value = start.toISOString().split('T')[0];
-                document.getElementById('endDate').value = end.toISOString().split('T')[0];
+                document.getElementById('startDate').value = startStr;
+                document.getElementById('endDate').value = endStr;
             }
 
             renderMatrix();
@@ -777,7 +811,7 @@
             }
 
             let html = '';
-            const sorted = [...manualEntries].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const sorted = [...manualEntries].sort((a, b) => b.date.localeCompare(a.date));
 
             sorted.forEach(entry => {
                 html += `<tr class="hover:bg-gray-800/30 transition">`;
@@ -827,18 +861,16 @@
 
             if (!startDateStr || !endDateStr) return;
 
-            const startDate = new Date(startDateStr + 'T00:00:00');
-            const endDate = new Date(endDateStr + 'T00:00:00');
-
             const teamLabel = selectedTeam === 'ALL' ? '' : ` • Team: ${selectedTeam}`;
             document.getElementById('reportHeaderTitle').textContent = `DTT Performance Summary (${currentMode.toUpperCase()}${teamLabel})`;
             document.getElementById('reportSubtitle').textContent = `Range: ${startDateStr} to ${endDateStr} • Formula: (Duration/60) + 1 min`;
 
+            // Build active dates using pure string arithmetic (no timezone drift!)
             let activeDates = [];
-            let curr = new Date(startDate);
-            while (curr <= endDate) {
-                activeDates.push(curr.toISOString().split('T')[0]);
-                curr.setDate(curr.getDate() + 1);
+            let currStr = startDateStr;
+            while (currStr <= endDateStr) {
+                activeDates.push(currStr);
+                currStr = addDaysToStringDate(currStr, 1);
             }
 
             const aggregated = {};
@@ -869,15 +901,15 @@
             // --- QUARTER VIEW ---
             if (currentMode === 'qtd') {
                 const monthsInQ = [];
-                let mCurr = new Date(startDate);
-                while (mCurr <= endDate) {
-                    const key = mCurr.toISOString().slice(0, 7);
-                    const name = mCurr.toLocaleDateString('en-US', { month: 'long' });
+                activeDates.forEach(d => {
+                    const key = d.slice(0, 7); // e.g. "2026-08"
                     if (!monthsInQ.some(m => m.key === key)) {
-                        monthsInQ.push({ name, key });
+                        const parts = d.split('-');
+                        const monthIndex = parseInt(parts[1]) - 1;
+                        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                        monthsInQ.push({ name: monthNames[monthIndex], key });
                     }
-                    mCurr.setDate(mCurr.getDate() + 1);
-                }
+                });
 
                 let headerHTML = `<tr><th class="py-3 px-4 text-left border-b border-gray-800 text-gray-300 sticky-col">Rep Name</th>`;
                 monthsInQ.forEach(m => {
@@ -928,7 +960,8 @@
                 // --- DAILY MATRIX VIEW ---
                 let headerHTML = `<tr><th class="py-3 px-4 text-left border-b border-gray-800 text-gray-300 sticky-col">Rep Name</th>`;
                 activeDates.forEach(d => {
-                    const formattedDate = new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+                    const parts = d.split('-');
+                    const formattedDate = `${parseInt(parts[1])}/${parseInt(parts[2])}`;
                     headerHTML += `<th class="py-3 px-3 text-center border-b border-gray-800 min-w-[50px]">${formattedDate}</th>`;
                 });
                 headerHTML += `<th class="py-3 px-4 text-center border-b border-gray-800 bg-gray-900/90 text-gray-200">Total</th></tr>`;
