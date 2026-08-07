@@ -299,7 +299,7 @@
 
                         <input type="date" id="manualDateInput" required class="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:border-indigo-500">
 
-                        <input type="number" id="manualMinutesInput" step="0.1" min="0.1" placeholder="DTT Minutes (e.g. 45)" required class="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:border-indigo-500">
+                        <input type="number" id="manualMinutesInput" step="0.01" min="0.01" placeholder="DTT Minutes (e.g. 64.98)" required class="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:border-indigo-500">
 
                         <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 px-4 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20">
                             Add Minutes
@@ -361,7 +361,7 @@
                     </div>
                     <div>
                         <label class="block text-[11px] font-semibold text-gray-400 mb-1">Minutes</label>
-                        <input type="number" id="manualMinutesInputTab" step="0.1" min="0.1" placeholder="e.g. 45" required class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:border-indigo-500">
+                        <input type="number" id="manualMinutesInputTab" step="0.01" min="0.01" placeholder="e.g. 64.98" required class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-gray-200 focus:border-indigo-500">
                     </div>
                     <div class="flex items-end">
                         <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 px-4 rounded-xl text-xs transition shadow-lg shadow-indigo-600/20">
@@ -567,6 +567,37 @@
             });
         }
 
+        // --- TIMEZONE-SAFE DATE PARSER ---
+        function parseDateString(str) {
+            if (!str) return null;
+            
+            // Extract YYYY-MM-DD directly from ISO strings
+            if (str.includes('T')) {
+                return str.split('T')[0];
+            }
+            
+            // Parse month abbreviation strings like "Aug 06 2026" or "Aug 6 2026"
+            const months = {
+                jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+                jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
+            };
+            
+            const match = str.match(/([a-zA-Z]{3})\s+(\d{1,2})\s+(\d{4})/);
+            if (match) {
+                const month = months[match[1].toLowerCase()];
+                const day = match[2].padStart(2, '0');
+                const year = match[3];
+                if (month && day && year) {
+                    return `${year}-${month}-${day}`;
+                }
+            }
+
+            // Fallback parsing
+            let d = new Date(str);
+            if (isNaN(d.getTime())) return null;
+            return d.toISOString().split('T')[0];
+        }
+
         function processCSVData(data) {
             rawCallData = [];
             allKnownReps.clear();
@@ -626,13 +657,6 @@
         function refreshDateFilterOptions() {
             const allDates = [...rawCallData.map(d => d.date), ...manualEntries.map(m => m.date)].sort();
             parsedDates = [...new Set(allDates)];
-        }
-
-        function parseDateString(str) {
-            if (!str) return null;
-            let d = new Date(str);
-            if (isNaN(d.getTime())) return null;
-            return d.toISOString().split('T')[0];
         }
 
         function setPresetPeriod(mode) {
@@ -706,8 +730,8 @@
             document.getElementById('manualBadgeCount').textContent = manualEntries.length;
         }
 
-        // --- MANUAL ENTRY LOGIC ---
-        function addManualRecord(rep, date, minutes) {
+        // --- MANUAL ENTRY LOGIC WITH FORM RESET ---
+        function addManualRecord(rep, date, minutes, formElement) {
             const timestamp = new Date().toLocaleString();
             manualEntries.push({ id: Date.now(), rep, date, dtt: minutes, timestamp });
             allKnownReps.add(rep);
@@ -717,6 +741,8 @@
             renderManualTabTable();
             renderMatrix();
             saveAppState();
+
+            if (formElement) formElement.reset();
         }
 
         document.getElementById('manualDTTForm').addEventListener('submit', (e) => {
@@ -726,8 +752,7 @@
             const minutes = parseFloat(document.getElementById('manualMinutesInput').value);
 
             if (rep && date && !isNaN(minutes) && minutes > 0) {
-                addManualRecord(rep, date, minutes);
-                document.getElementById('manualMinutesInput').value = '';
+                addManualRecord(rep, date, minutes, e.target);
             }
         });
 
@@ -738,8 +763,7 @@
             const minutes = parseFloat(document.getElementById('manualMinutesInputTab').value);
 
             if (rep && date && !isNaN(minutes) && minutes > 0) {
-                addManualRecord(rep, date, minutes);
-                document.getElementById('manualMinutesInputTab').value = '';
+                addManualRecord(rep, date, minutes, e.target);
             }
         });
 
